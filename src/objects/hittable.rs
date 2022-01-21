@@ -1,8 +1,9 @@
 use std::fmt::Debug;
 
-use crate::tracer::{
-    ray::Ray,
-    vec3::{self, Vec3},
+use crate::{
+    materials::material::Material,
+    tracer::ray::Ray,
+    utils::vec3::{self, Vec3},
 };
 #[derive(Debug, Copy)]
 pub struct HitRecord {
@@ -10,6 +11,7 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    //pub material: Vec<Box<dyn Material>>,
 }
 
 impl Clone for HitRecord {
@@ -27,13 +29,6 @@ impl HitRecord {
             t: 0.0,
         }
     }
-}
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
-}
-
-impl HitRecord {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         self.front_face = vec3::dot(&r.direction(), &outward_normal) < 0.0;
         if self.front_face {
@@ -42,6 +37,10 @@ impl HitRecord {
             self.normal = -outward_normal;
         }
     }
+}
+
+pub trait Hittable {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
 }
 
 pub struct HittableList {

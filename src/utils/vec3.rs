@@ -2,12 +2,24 @@ use core::panic;
 
 use std::ops;
 
+use super::random::random_f64_min_max;
+
 pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.x() * v.x() + u.y() * v.y() + u.z() * v.z()
 }
 
 pub fn unit_vector(vec: Vec3) -> Vec3 {
     vec / vec.length()
+}
+
+fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {
+        return min;
+    }
+    if x > max {
+        return max;
+    }
+    return x;
 }
 
 #[derive(Debug, Copy)]
@@ -21,6 +33,28 @@ impl Vec3 {
     }
     pub fn from(e0: f64, e1: f64, e2: f64) -> Vec3 {
         Vec3 { e: [e0, e1, e2] }
+    }
+    pub fn random(min: f64, max: f64) -> Vec3 {
+        Vec3 {
+            e: [
+                random_f64_min_max(min, max),
+                random_f64_min_max(min, max),
+                random_f64_min_max(min, max),
+            ],
+        }
+    }
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        unit_vector(Vec3::random_in_unit_sphere())
     }
 
     pub fn x(&self) -> f64 {
@@ -45,6 +79,15 @@ impl Vec3 {
         let r = self.x() * 255.0;
         let g = self.y() * 255.0;
         let b = self.z() * 255.0;
+
+        [r as u8, g as u8, b as u8]
+    }
+
+    pub fn as_color_sampled(&self, samples_per_pixel: f64) -> [u8; 3] {
+        let scale = 1.0 / samples_per_pixel;
+        let r = clamp((self.x() * scale).sqrt() * 255.0, 0.0, 255.0);
+        let g = clamp((self.y() * scale).sqrt() * 255.0, 0.0, 255.0);
+        let b = clamp((self.z() * scale).sqrt() * 255.0, 0.0, 255.0);
 
         [r as u8, g as u8, b as u8]
     }

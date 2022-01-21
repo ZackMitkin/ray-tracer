@@ -1,4 +1,4 @@
-use super::vec3::Vec3;
+use crate::utils::vec3::Vec3;
 
 impl Ray {
     pub fn from(origin: Vec3, direction: Vec3) -> Ray {

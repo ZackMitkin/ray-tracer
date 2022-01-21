@@ -1,6 +1,6 @@
-use crate::tracer::{
-    ray::Ray,
-    vec3::{self, Vec3},
+use crate::{
+    tracer::ray::Ray,
+    utils::vec3::{self, Vec3},
 };
 
 use super::hittable::{HitRecord, Hittable};
