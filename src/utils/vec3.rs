@@ -4,12 +4,16 @@ use std::ops;
 
 use super::random::random_f64_min_max;
 
-pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
+pub fn dot(u: Vec3, v: Vec3) -> f64 {
     u.x() * v.x() + u.y() * v.y() + u.z() * v.z()
 }
 
 pub fn unit_vector(vec: Vec3) -> Vec3 {
     vec / vec.length()
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * dot(v, n) * n
 }
 
 fn clamp(x: f64, min: f64, max: f64) -> f64 {
@@ -51,6 +55,11 @@ impl Vec3 {
             }
             return p;
         }
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        ((self.e[0]) < s) && ((self.e[1]) < s) && ((self.e[2]) < s)
     }
 
     pub fn random_unit_vector() -> Vec3 {
