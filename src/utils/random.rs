@@ -1,7 +1,5 @@
 use rand::Rng;
 
-const RAND_MAX: u32 = 0;
-
 pub fn random_f64() -> f64 {
     rand::thread_rng().gen::<f64>()
 }

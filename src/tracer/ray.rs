@@ -9,6 +9,9 @@ impl Ray {
     pub fn from(origin: Vec3, direction: Vec3) -> Ray {
         Ray { direction, origin }
     }
+    pub fn set(&mut self, origin: Vec3, direction: Vec3) {
+        *self = Ray { direction, origin }
+    }
 
     pub fn at(&self, t: f64) -> Vec3 {
         self.origin + t * self.direction

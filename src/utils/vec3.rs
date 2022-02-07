@@ -35,6 +35,7 @@ impl Vec3 {
     pub fn new() -> Vec3 {
         Vec3 { e: [0.0, 0.0, 0.0] }
     }
+
     pub fn from(e0: f64, e1: f64, e2: f64) -> Vec3 {
         Vec3 { e: [e0, e1, e2] }
     }
@@ -46,6 +47,9 @@ impl Vec3 {
                 random_f64_min_max(min, max),
             ],
         }
+    }
+    pub fn set(&mut self, new: Vec3) {
+        *self = new
     }
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {

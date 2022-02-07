@@ -1,6 +1,10 @@
+use std::rc::Rc;
+
 use image::imageops;
+use materials::lambertian::Lambertian;
 use objects::{
-    hittable::{HitRecord, Hittable, HittableList},
+    hit_record::HitRecord,
+    hittable::{Hittable, HittableList},
     sphere::Sphere,
 };
 use tracer::{camera::Camera, ray::Ray};
@@ -17,15 +21,24 @@ extern crate image;
 
 const INFINITY: f64 = f64::MAX;
 
-fn ray_color(ray: &Ray, world: &dyn Hittable, depth: u32) -> Vec3 {
+fn ray_color(ray: &mut Ray, world: &dyn Hittable, depth: u32) -> Vec3 {
     if depth <= 0 {
         return Vec3::new();
     }
 
     let mut rec = HitRecord::new();
+
     if world.hit(ray, 0.001, INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + Vec3::random_unit_vector();
-        return 0.5 * ray_color(&Ray::from(rec.p, target - rec.p), world, depth - 1);
+        let mut scattered = Ray::from(Vec3::new(), Vec3::new());
+        let mut attenuation = Vec3::new();
+
+        let material = rec.material.as_ref().unwrap().to_owned();
+
+        if material.scatter(ray, &mut rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&mut scattered, world, depth);
+        } else {
+            return Vec3::new();
+        }
     }
     let unit_direction = vec3::unit_vector(ray.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -35,15 +48,27 @@ fn ray_color(ray: &Ray, world: &dyn Hittable, depth: u32) -> Vec3 {
 fn main() {
     // image
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400;
+    let image_width = 150;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 100;
-    let max_depth = 150;
+    let samples_per_pixel = 50;
+    let max_depth = 1;
 
     // world
     let mut world = HittableList::new();
-    world.add(Box::new(Sphere::new(Vec3::from(0.0, 0.0, -1.0), 0.5)));
-    world.add(Box::new(Sphere::new(Vec3::from(0.0, -100.5, -1.0), 100.0)));
+
+    let material_ground = Lambertian::new(Vec3::from(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(Vec3::from(0.7, 0.3, 0.3));
+
+    world.add(Box::new(Sphere::new(
+        Vec3::from(0.0, 0.0, -1.0),
+        0.5,
+        Option::Some(Rc::new(material_center)),
+    )));
+    world.add(Box::new(Sphere::new(
+        Vec3::from(0.0, -100.5, -1.0),
+        100.0,
+        Option::Some(Rc::new(material_ground)),
+    )));
 
     // camera
     let camera = Camera::new();
@@ -60,8 +85,8 @@ fn main() {
                 let u = ((i as f64) + random_f64()) / (image_width as f64);
                 let v = ((j as f64) + random_f64()) / (image_height as f64);
 
-                let ray = camera.get_ray(u, v);
-                pixel_color += ray_color(&ray, &world, max_depth);
+                let mut ray = camera.get_ray(u, v);
+                pixel_color += ray_color(&mut ray, &world, max_depth);
             }
 
             let pixel = image.get_pixel_mut(i, j);

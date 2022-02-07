@@ -1,5 +1,13 @@
-use crate::{objects::hittable::HitRecord, tracer::ray::Ray, utils::vec3::Vec3};
+use std::fmt::Debug;
 
-pub trait Material {
-    fn scatter(&self, r_in: &Ray, hit_record: &HitRecord, attenuation: &Vec3, scattered: &Ray);
+use crate::{objects::hit_record::HitRecord, tracer::ray::Ray, utils::vec3::Vec3};
+
+pub trait Material: Debug {
+    fn scatter(
+        &self,
+        r_in: &mut Ray,
+        hit_record: &mut HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool;
 }

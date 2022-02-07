@@ -1,22 +1,19 @@
-use crate::{
-    tracer::ray::Ray,
-    utils::vec3::{self, Vec3},
-};
+use crate::{tracer::ray::Ray, utils::vec3::Vec3};
 
 use super::material::Material;
 
 #[derive(Debug)]
-pub struct Metal {
+pub struct Lambertian {
     albedo: Vec3,
 }
 
-impl Metal {
+impl Lambertian {
     pub fn new(color: Vec3) -> Self {
         Self { albedo: color }
     }
 }
 
-impl Material for Metal {
+impl Material for Lambertian {
     fn scatter(
         &self,
         r_in: &mut Ray,
@@ -24,11 +21,15 @@ impl Material for Metal {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool {
-        let reflected = vec3::reflect(vec3::unit_vector(r_in.direction()), hit_record.normal);
+        let mut scatter_direction = hit_record.normal + Vec3::random_unit_vector();
 
-        scattered.set(hit_record.p, reflected);
+        if scatter_direction.near_zero() {
+            scatter_direction = hit_record.normal
+        }
+
+        scattered.set(hit_record.p, scatter_direction);
         attenuation.set(self.albedo);
 
-        vec3::dot(scattered.direction(), hit_record.normal) > 0.0
+        true
     }
 }
