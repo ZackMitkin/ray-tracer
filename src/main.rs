@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use image::imageops;
-use materials::lambertian::Lambertian;
+use materials::{lambertian::Lambertian, metal::Metal};
 use objects::{
     hit_record::HitRecord,
     hittable::{Hittable, HittableList},
@@ -48,20 +48,20 @@ fn ray_color(ray: &mut Ray, world: &dyn Hittable, depth: u32) -> Vec3 {
 fn main() {
     // image
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 150;
+    let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 50;
-    let max_depth = 1;
+    let samples_per_pixel = 100;
+    let max_depth = 50;
 
     // world
     let mut world = HittableList::new();
 
     let material_ground = Lambertian::new(Vec3::from(0.8, 0.8, 0.0));
-    let material_center = Lambertian::new(Vec3::from(0.7, 0.3, 0.3));
+    let material_center = Metal::new(Vec3::from(0.7, 0.3, 0.3));
 
     world.add(Box::new(Sphere::new(
         Vec3::from(0.0, 0.0, -1.0),
-        0.5,
+        0.2,
         Option::Some(Rc::new(material_center)),
     )));
     world.add(Box::new(Sphere::new(
@@ -89,8 +89,11 @@ fn main() {
                 pixel_color += ray_color(&mut ray, &world, max_depth);
             }
 
-            let pixel = image.get_pixel_mut(i, j);
-            *pixel = image::Rgb(pixel_color.as_color_sampled(samples_per_pixel as f64));
+            image.put_pixel(
+                i,
+                j,
+                image::Rgb(pixel_color.as_color_sampled(samples_per_pixel as f64)),
+            );
         }
     }
     image = imageops::flip_vertical(&image);
