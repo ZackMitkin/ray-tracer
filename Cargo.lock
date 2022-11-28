@@ -327,6 +327,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ray_tracer"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "rand",
+]
+
+[[package]]
 name = "rayon"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -349,14 +357,6 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
-]
-
-[[package]]
-name = "rust"
-version = "0.1.0"
-dependencies = [
- "image",
- "rand",
 ]
 
 [[package]]

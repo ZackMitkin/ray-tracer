@@ -57,17 +57,29 @@ fn main() {
     let mut world = HittableList::new();
 
     let material_ground = Lambertian::new(Vec3::from(0.8, 0.8, 0.0));
-    let material_center = Metal::new(Vec3::from(0.7, 0.3, 0.3));
+    let material_center = Lambertian::new(Vec3::from(0.7, 0.3, 0.3));
+    let material_left = Metal::new(Vec3::from(0.8, 0.8, 0.8));
+    let material_right = Metal::new(Vec3::from(0.8, 0.6, 0.2));
 
     world.add(Box::new(Sphere::new(
-        Vec3::from(0.0, 0.0, -1.0),
+        Vec3::from(0.0, -100.5, -1.0),
         0.2,
+        Option::Some(Rc::new(material_ground)),
+    )));
+    world.add(Box::new(Sphere::new(
+        Vec3::from(0.0, 0.0, -1.0),
+        100.0,
         Option::Some(Rc::new(material_center)),
     )));
     world.add(Box::new(Sphere::new(
-        Vec3::from(0.0, -100.5, -1.0),
-        100.0,
-        Option::Some(Rc::new(material_ground)),
+        Vec3::from(-1.0, 0.0, -1.0),
+        0.5,
+        Option::Some(Rc::new(material_left)),
+    )));
+    world.add(Box::new(Sphere::new(
+        Vec3::from(-1.0, 0.0, -1.0),
+        0.5,
+        Option::Some(Rc::new(material_right)),
     )));
 
     // camera
