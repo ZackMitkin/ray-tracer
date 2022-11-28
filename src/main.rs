@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, sync::mpsc};
 
 use image::imageops;
 use materials::{lambertian::Lambertian, metal::Metal};
@@ -7,6 +7,7 @@ use objects::{
     hittable::{Hittable, HittableList},
     sphere::Sphere,
 };
+use rayon::prelude::*;
 use tracer::{camera::Camera, ray::Ray};
 use utils::{
     random::random_f64,
@@ -35,7 +36,7 @@ fn ray_color(ray: &mut Ray, world: &dyn Hittable, depth: u32) -> Vec3 {
         let material = rec.material.as_ref().unwrap().to_owned();
 
         if material.scatter(ray, &mut rec, &mut attenuation, &mut scattered) {
-            return attenuation * ray_color(&mut scattered, world, depth);
+            return attenuation * ray_color(&mut scattered, world, depth - 1);
         } else {
             return Vec3::new();
         }
@@ -50,7 +51,7 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel: f64 = 100.0;
     let max_depth = 50;
 
     // world
@@ -58,26 +59,27 @@ fn main() {
 
     let material_ground = Lambertian::new(Vec3::from(0.8, 0.8, 0.0));
     let material_center = Lambertian::new(Vec3::from(0.7, 0.3, 0.3));
-    let material_left = Metal::new(Vec3::from(0.8, 0.8, 0.8));
-    let material_right = Metal::new(Vec3::from(0.8, 0.6, 0.2));
+    let material_left = Metal::new(Vec3::from(0.8, 0.8, 0.8), 0.3);
+    let material_right = Metal::new(Vec3::from(0.8, 0.6, 0.2), 1.0);
 
     world.add(Box::new(Sphere::new(
         Vec3::from(0.0, -100.5, -1.0),
-        0.2,
+        100.0,
         Option::Some(Rc::new(material_ground)),
     )));
     world.add(Box::new(Sphere::new(
         Vec3::from(0.0, 0.0, -1.0),
-        100.0,
+        0.5,
         Option::Some(Rc::new(material_center)),
     )));
+
     world.add(Box::new(Sphere::new(
         Vec3::from(-1.0, 0.0, -1.0),
         0.5,
         Option::Some(Rc::new(material_left)),
     )));
     world.add(Box::new(Sphere::new(
-        Vec3::from(-1.0, 0.0, -1.0),
+        Vec3::from(1.0, 0.0, -1.0),
         0.5,
         Option::Some(Rc::new(material_right)),
     )));
@@ -93,7 +95,7 @@ fn main() {
         for i in 0..image_width {
             let mut pixel_color = Vec3::new();
 
-            for _ in 0..samples_per_pixel {
+            for _ in 0..samples_per_pixel as u32 {
                 let u = ((i as f64) + random_f64()) / (image_width as f64);
                 let v = ((j as f64) + random_f64()) / (image_height as f64);
 
@@ -104,7 +106,7 @@ fn main() {
             image.put_pixel(
                 i,
                 j,
-                image::Rgb(pixel_color.as_color_sampled(samples_per_pixel as f64)),
+                image::Rgb(pixel_color.as_color_sampled(samples_per_pixel)),
             );
         }
     }

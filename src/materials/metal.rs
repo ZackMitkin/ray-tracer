@@ -8,11 +8,15 @@ use super::material::Material;
 #[derive(Debug)]
 pub struct Metal {
     albedo: Vec3,
+    fuzz: f64,
 }
 
 impl Metal {
-    pub fn new(color: Vec3) -> Self {
-        Self { albedo: color }
+    pub fn new(color: Vec3, fuzz: f64) -> Self {
+        Self {
+            albedo: color,
+            fuzz,
+        }
     }
 }
 
@@ -26,7 +30,10 @@ impl Material for Metal {
     ) -> bool {
         let reflected = vec3::reflect(vec3::unit_vector(r_in.direction()), hit_record.normal);
 
-        scattered.set(hit_record.p, reflected);
+        scattered.set(
+            hit_record.p,
+            reflected + (Vec3::random_in_unit_sphere() * self.fuzz),
+        );
         attenuation.set(self.albedo);
 
         vec3::dot(scattered.direction(), hit_record.normal) > 0.0
